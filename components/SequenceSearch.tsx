@@ -70,7 +70,8 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
       <form action={formAction} className="mt-4 grid gap-3">
         <input type="hidden" name="upload_id" value={uploadId} />
         {[1, 2, 3].map((slot) => {
-          const filterValue = filters[`card_${slot as 1 | 2 | 3}`] || "";
+          const key = `card_${slot as 1 | 2 | 3}` as const;
+          const filterValue = filters[key] || "";
           const filteredCards =
             filterValue.trim().length > 0
               ? cards.filter((card) =>
@@ -81,40 +82,57 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
               : cards;
 
           return (
-          <label key={slot} className="text-xs text-zinc-400">
-            Card {slot}
-            <input
-              type="text"
-              value={filterValue}
-              onChange={(event) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  [`card_${slot}`]: event.target.value,
-                }))
-              }
-              placeholder="Type to filter cards..."
-              className="mt-2 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
-            />
-            <select
-              name={`card_${slot}`}
-              value={selected[`card_${slot as 1 | 2 | 3}`]}
-              onChange={(event) =>
-                setSelected((prev) => ({
-                  ...prev,
-                  [`card_${slot}`]: event.target.value,
-                }))
-              }
-              className="mt-2 w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
-            >
-              <option value="">Select a card</option>
-              {filteredCards.map((card) => (
-                <option key={`${card.id}-${slot}`} value={card.id}>
-                  {card.name} ({card.version})
-                </option>
-              ))}
-            </select>
-          </label>
-        )})}
+            <label key={slot} className="text-xs text-zinc-400">
+              Card {slot}
+              <input type="hidden" name={key} value={selected[key]} />
+              <div className="mt-2 rounded-md border border-zinc-700 bg-zinc-950">
+                <input
+                  type="text"
+                  value={filterValue}
+                  onChange={(event) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      [key]: event.target.value,
+                    }))
+                  }
+                  placeholder="Type to filter cards..."
+                  className="w-full rounded-md bg-transparent px-3 py-2 text-sm text-zinc-100 outline-none"
+                />
+                <div className="max-h-40 overflow-y-auto border-t border-zinc-800">
+                  {filteredCards.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-zinc-500">
+                      No matches
+                    </div>
+                  ) : (
+                    filteredCards.map((card) => (
+                      <button
+                        key={`${card.id}-${slot}`}
+                        type="button"
+                        onClick={() => {
+                          setSelected((prev) => ({ ...prev, [key]: card.id }));
+                          setFilters((prev) => ({
+                            ...prev,
+                            [key]: `${card.name} (${card.version})`,
+                          }));
+                        }}
+                        className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-zinc-900 ${
+                          selected[key] === card.id
+                            ? "bg-zinc-900 text-emerald-300"
+                            : "text-zinc-200"
+                        }`}
+                      >
+                        <span>{card.name}</span>
+                        <span className="text-xs text-zinc-500">
+                          {card.version}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </label>
+          );
+        })}
 
         <div className="mt-2 flex flex-wrap gap-2">
           <button
@@ -127,10 +145,9 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
           <button
             type="button"
             onClick={() => {
-              const cleared = { card_1: "", card_2: "", card_3: "" };
-              setSelected(cleared);
               if (typeof window !== "undefined") {
                 window.sessionStorage.removeItem(storageKey);
+                window.location.reload();
               }
             }}
             className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-200"
