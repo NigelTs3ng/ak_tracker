@@ -129,6 +129,7 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
             onClick={() => {
               const cleared = { card_1: "", card_2: "", card_3: "" };
               setSelected(cleared);
+              setFilters(cleared);
               if (typeof window !== "undefined") {
                 window.sessionStorage.removeItem(storageKey);
               }
