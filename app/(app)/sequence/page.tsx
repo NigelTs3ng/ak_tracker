@@ -77,7 +77,21 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
     .select("id,name,version")
     .order("name", { ascending: true });
 
-  const { data: sequence } = await supabase
+  type SequenceCard = {
+    id: string;
+    name: string;
+    type: string;
+    rarity: string;
+  };
+
+  type SequenceRow = {
+    position_index: number;
+    deck_label: string;
+    version: string;
+    cards: SequenceCard[] | SequenceCard | null;
+  };
+
+  const { data: sequenceData } = await supabase
     .from("card_sequences")
     .select(
       "position_index, deck_label, version, cards(id, name, type, rarity)",
@@ -86,7 +100,13 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
     .order("deck_label", { ascending: true })
     .order("position_index", { ascending: true });
 
-  const grouped = (sequence ?? []).reduce<Record<string, typeof sequence>>(
+  const sequence = (sequenceData ?? []) as SequenceRow[];
+  const resolveCard = (row: SequenceRow): SequenceCard | null => {
+    if (!row.cards) return null;
+    return Array.isArray(row.cards) ? row.cards[0] ?? null : row.cards;
+  };
+
+  const grouped = sequence.reduce<Record<string, SequenceRow[]>>(
     (acc, row) => {
       const key = row.deck_label ?? "Unknown";
       if (!acc[key]) acc[key] = [];
@@ -134,7 +154,11 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
         </div>
       ) : null}
 
-      <SequenceSearch uploadId={latestUpload.id} cards={cards ?? []} />
+      <SequenceSearch
+        key={latestUpload.id}
+        uploadId={latestUpload.id}
+        cards={cards ?? []}
+      />
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
         <h2 className="text-lg font-semibold">Full Sequence</h2>
@@ -150,17 +174,18 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
                     key={`${deck}-${row.position_index}`}
                     id={`deck-${deck}-${row.position_index}`}
                     className={`sequence-item flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 ${rarityClass(
-                      row.cards?.rarity,
+                      resolveCard(row)?.rarity,
                     )}`}
                   >
                     <div className="text-xs text-zinc-400">
                       #{row.position_index}
                     </div>
                     <div className="flex-1 text-sm font-semibold">
-                      {row.cards?.name}
+                      {resolveCard(row)?.name}
                     </div>
                     <div className="text-xs text-zinc-400">
-                      {row.cards?.type} • {row.cards?.rarity} • {row.version}
+                      {resolveCard(row)?.type} • {resolveCard(row)?.rarity} •{" "}
+                      {row.version}
                     </div>
                   </div>
                 ))}

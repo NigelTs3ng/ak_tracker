@@ -14,6 +14,12 @@ type Props = {
   cards: CardOption[];
 };
 
+type SelectedState = {
+  card_1: string;
+  card_2: string;
+  card_3: string;
+};
+
 const initialState = { matches: [], message: null };
 
 export default function SequenceSearch({ uploadId, cards }: Props) {
@@ -21,26 +27,25 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
     searchSequenceAction,
     initialState,
   );
-  const [selected, setSelected] = useState({
-    card_1: "",
-    card_2: "",
-    card_3: "",
-  });
   const storageKey = `ak-sequence-inputs:${uploadId}`;
-
-  useEffect(() => {
-    const stored = window.sessionStorage.getItem(storageKey);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setSelected((prev) => ({ ...prev, ...parsed }));
-      } catch {
-        // Ignore malformed storage.
-      }
+  const [selected, setSelected] = useState<SelectedState>(() => {
+    if (typeof window === "undefined") {
+      return { card_1: "", card_2: "", card_3: "" };
     }
-  }, [storageKey]);
+    const stored = window.sessionStorage.getItem(storageKey);
+    if (!stored) {
+      return { card_1: "", card_2: "", card_3: "" };
+    }
+    try {
+      const parsed = JSON.parse(stored);
+      return { card_1: "", card_2: "", card_3: "", ...parsed };
+    } catch {
+      return { card_1: "", card_2: "", card_3: "" };
+    }
+  });
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     window.sessionStorage.setItem(storageKey, JSON.stringify(selected));
   }, [selected, storageKey]);
 
@@ -90,7 +95,9 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
             onClick={() => {
               const cleared = { card_1: "", card_2: "", card_3: "" };
               setSelected(cleared);
-              window.sessionStorage.removeItem(storageKey);
+              if (typeof window !== "undefined") {
+                window.sessionStorage.removeItem(storageKey);
+              }
             }}
             className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-200"
           >

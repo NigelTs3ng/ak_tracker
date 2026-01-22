@@ -46,15 +46,46 @@ export async function searchSequenceAction(
     return { matches: [], message: "Unable to search sequence right now." };
   }
 
-  const sequence: SequenceCard[] = data.map((row) => ({
-    position_index: row.position_index as number,
-    card_id: row.cards?.id as string,
-    card_name: row.cards?.name as string,
-    type: row.cards?.type as string,
-    rarity: row.cards?.rarity as string,
-    version: row.version as string,
-    deck_label: row.deck_label as string,
-  }));
+  type SequenceRow = {
+    position_index: number;
+    deck_label: string;
+    version: string;
+    cards:
+      | {
+          id: string;
+          name: string;
+          type: string;
+          rarity: string;
+        }
+      | {
+          id: string;
+          name: string;
+          type: string;
+          rarity: string;
+        }[]
+      | null;
+  };
+  const rows = data as SequenceRow[];
+  const resolveCard = (row: SequenceRow) => {
+    if (!row.cards) return null;
+    return Array.isArray(row.cards) ? row.cards[0] ?? null : row.cards;
+  };
+
+  const sequence: SequenceCard[] = rows
+    .map((row) => {
+      const card = resolveCard(row);
+      if (!card) return null;
+      return {
+        position_index: row.position_index as number,
+        card_id: card.id,
+        card_name: card.name,
+        type: card.type,
+        rarity: card.rarity,
+        version: row.version as string,
+        deck_label: row.deck_label as string,
+      };
+    })
+    .filter((row): row is SequenceCard => Boolean(row));
 
   const byDeck = new Map<string, SequenceCard[]>();
   sequence.forEach((row) => {
