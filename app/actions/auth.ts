@@ -30,9 +30,17 @@ export async function registerAction(
 ): Promise<ActionState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://ak-tracker.vercel.app";
 
   const supabase = await createSupabaseServerClient({ setCookies: true });
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${siteUrl}/login`,
+    },
+  });
 
   if (error) {
     return { error: error.message };
