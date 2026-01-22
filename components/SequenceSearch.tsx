@@ -20,6 +20,12 @@ type SelectedState = {
   card_3: string;
 };
 
+type FilterState = {
+  card_1: string;
+  card_2: string;
+  card_3: string;
+};
+
 const initialState = { matches: [], message: null };
 
 export default function SequenceSearch({ uploadId, cards }: Props) {
@@ -43,6 +49,11 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
       return { card_1: "", card_2: "", card_3: "" };
     }
   });
+  const [filters, setFilters] = useState<FilterState>({
+    card_1: "",
+    card_2: "",
+    card_3: "",
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -58,9 +69,32 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
 
       <form action={formAction} className="mt-4 grid gap-3">
         <input type="hidden" name="upload_id" value={uploadId} />
-        {[1, 2, 3].map((slot) => (
+        {[1, 2, 3].map((slot) => {
+          const filterValue = filters[`card_${slot as 1 | 2 | 3}`] || "";
+          const filteredCards =
+            filterValue.trim().length > 0
+              ? cards.filter((card) =>
+                  `${card.name} ${card.version}`
+                    .toLowerCase()
+                    .includes(filterValue.toLowerCase()),
+                )
+              : cards;
+
+          return (
           <label key={slot} className="text-xs text-zinc-400">
             Card {slot}
+            <input
+              type="text"
+              value={filterValue}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  [`card_${slot}`]: event.target.value,
+                }))
+              }
+              placeholder="Type to filter cards..."
+              className="mt-2 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
+            />
             <select
               name={`card_${slot}`}
               value={selected[`card_${slot as 1 | 2 | 3}`]}
@@ -70,17 +104,17 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
                   [`card_${slot}`]: event.target.value,
                 }))
               }
-              className="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
+              className="mt-2 w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
             >
               <option value="">Select a card</option>
-              {cards.map((card) => (
+              {filteredCards.map((card) => (
                 <option key={`${card.id}-${slot}`} value={card.id}>
                   {card.name} ({card.version})
                 </option>
               ))}
             </select>
           </label>
-        ))}
+        )})}
 
         <div className="mt-2 flex flex-wrap gap-2">
           <button
