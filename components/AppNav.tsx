@@ -1,19 +1,26 @@
 import Link from "next/link";
+import { getProfile } from "@/lib/auth";
 
-const navItems = [
-  { href: "/cards", label: "Cards" },
-  { href: "/community", label: "Community" },
-  { href: "/sequence", label: "Sequence" },
-  { href: "/profile", label: "Profile" },
-];
+export default async function AppNav() {
+  const profile = await getProfile();
+  const adminEmail = process.env.ADMIN_EMAIL ?? "";
+  const isAdmin = Boolean(profile?.email && profile.email === adminEmail);
 
-export default function AppNav() {
+  const navItems = [
+    { href: "/cards", label: "Cards" },
+    { href: "/community", label: "Community" },
+    { href: "/sequence", label: "Sequence" },
+    { href: "/profile", label: "Profile" },
+  ];
+  const adminItems = isAdmin ? [{ href: "/admin/users", label: "Admin" }] : [];
+  const allItems = [...navItems, ...adminItems];
+
   return (
     <>
       <aside className="hidden h-screen w-60 flex-col border-r border-zinc-800 bg-zinc-950 p-6 lg:flex">
         <div className="text-lg font-semibold">Animal Kaiser Plus</div>
         <nav className="mt-8 flex flex-col gap-3 text-sm text-zinc-300">
-          {navItems.map((item) => (
+          {allItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -26,7 +33,7 @@ export default function AppNav() {
       </aside>
       <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-zinc-800 bg-zinc-950/95 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-xl items-center justify-between gap-2 px-4 py-4 text-sm font-semibold text-zinc-100">
-          {navItems.map((item) => (
+          {allItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
