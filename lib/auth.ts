@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "./supabase/server";
 
@@ -5,6 +6,7 @@ export type Profile = {
   id: string;
   email: string | null;
   role: "free" | "premium";
+  active_device_id: string | null;
 };
 
 export async function getUser() {
@@ -23,7 +25,7 @@ export async function getProfile() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id,email,role")
+    .select("id,email,role,active_device_id")
     .eq("id", user.id)
     .single();
 
@@ -34,6 +36,15 @@ export async function requireUser() {
   const user = await getUser();
   if (!user) {
     redirect("/login");
+  }
+
+  const profile = await getProfile();
+  if (profile?.active_device_id) {
+    const cookieStore = await cookies();
+    const deviceId = cookieStore.get("ak_device_id")?.value ?? "";
+    if (!deviceId || deviceId !== profile.active_device_id) {
+      redirect("/session-ended");
+    }
   }
 
   return user;

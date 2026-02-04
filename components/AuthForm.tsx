@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 type Props = {
   mode: "login" | "register";
@@ -14,9 +14,25 @@ const initialState = { error: null };
 
 export default function AuthForm({ mode, action }: Props) {
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const [deviceId, setDeviceId] = useState("");
+
+  useEffect(() => {
+    const storageKey = "ak-device-id";
+    const existing = window.localStorage.getItem(storageKey);
+    if (existing) {
+      setDeviceId(existing);
+      return;
+    }
+    const generated = `${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 10)}`;
+    window.localStorage.setItem(storageKey, generated);
+    setDeviceId(generated);
+  }, []);
 
   return (
     <form action={formAction} className="mt-6 flex flex-col gap-4">
+      <input type="hidden" name="device_id" value={deviceId} />
       <label className="flex flex-col gap-2 text-sm text-zinc-200">
         Email
         <input

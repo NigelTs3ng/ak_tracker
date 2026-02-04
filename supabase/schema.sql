@@ -13,6 +13,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users on delete cascade,
   email text,
   role text not null default 'free' check (role in ('free', 'premium')),
+  active_device_id text,
   created_at timestamptz not null default now()
 );
 
