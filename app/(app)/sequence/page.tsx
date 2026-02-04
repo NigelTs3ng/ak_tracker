@@ -63,7 +63,7 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
   );
   const hasUpload = Boolean(latestUpload);
 
-  if (!hasUpload) {
+  if (!hasUpload || !latestUpload) {
     return (
       <section className="flex flex-col gap-4">
         <h1 className="text-2xl font-semibold">Sequence Viewer</h1>
