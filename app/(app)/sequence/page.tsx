@@ -36,9 +36,14 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
             Unlock deck sequences, search by recent draws, and see likely next
             cards.
           </p>
-          <button className="mt-4 rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950">
+          <a
+            href="https://t.me/twentytree233?text=Hi%20there%2C%20I%20would%20like%20to%20upgrade%20to%20premium%20on%20the%20animal%20kaiser%20plus%20app%20to%20use%20the%20card%20list%20function%21"
+            className="mt-4 inline-flex rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Contact support to upgrade
-          </button>
+          </a>
         </div>
       </section>
     );
