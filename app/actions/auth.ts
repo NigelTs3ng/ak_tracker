@@ -16,6 +16,9 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const deviceId = String(formData.get("device_id") ?? "");
+  if (!deviceId) {
+    return { error: "Device session not ready. Please try again." };
+  }
 
   const supabase = await createSupabaseServerClient({ setCookies: true });
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -36,10 +39,18 @@ export async function loginAction(
       secure: true,
     });
 
-    await supabase
-      .from("profiles")
-      .update({ active_device_id: deviceId })
-      .eq("id", data.user.id);
+    try {
+      const admin = createSupabaseAdminClient();
+      await admin
+        .from("profiles")
+        .update({ active_device_id: deviceId })
+        .eq("id", data.user.id);
+    } catch {
+      await supabase
+        .from("profiles")
+        .update({ active_device_id: deviceId })
+        .eq("id", data.user.id);
+    }
 
     try {
       const admin = createSupabaseAdminClient();
@@ -59,6 +70,9 @@ export async function registerAction(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const deviceId = String(formData.get("device_id") ?? "");
+  if (!deviceId) {
+    return { error: "Device session not ready. Please try again." };
+  }
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://ak-tracker.vercel.app";
 
@@ -84,10 +98,18 @@ export async function registerAction(
       secure: true,
     });
 
-    await supabase
-      .from("profiles")
-      .update({ active_device_id: deviceId })
-      .eq("id", data.user.id);
+    try {
+      const admin = createSupabaseAdminClient();
+      await admin
+        .from("profiles")
+        .update({ active_device_id: deviceId })
+        .eq("id", data.user.id);
+    } catch {
+      await supabase
+        .from("profiles")
+        .update({ active_device_id: deviceId })
+        .eq("id", data.user.id);
+    }
   }
 
   redirect("/cards");

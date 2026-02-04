@@ -15,6 +15,7 @@ const initialState = { error: null };
 export default function AuthForm({ mode, action }: Props) {
   const [state, formAction, isPending] = useActionState(action, initialState);
   const [deviceId, setDeviceId] = useState("");
+  const isReady = deviceId.length > 0;
 
   useEffect(() => {
     const storageKey = "ak-device-id";
@@ -61,7 +62,7 @@ export default function AuthForm({ mode, action }: Props) {
       ) : null}
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || !isReady}
         className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 disabled:opacity-60"
       >
         {isPending
@@ -70,6 +71,11 @@ export default function AuthForm({ mode, action }: Props) {
             ? "Sign in"
             : "Create account"}
       </button>
+      {!isReady ? (
+        <p className="text-xs text-zinc-500">
+          Preparing device session...
+        </p>
+      ) : null}
     </form>
   );
 }
