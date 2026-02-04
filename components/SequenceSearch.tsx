@@ -60,6 +60,19 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
     window.sessionStorage.setItem(storageKey, JSON.stringify(selected));
   }, [selected, storageKey]);
 
+  const rarityClass = (rarity: string) => {
+    switch (rarity) {
+      case "gold":
+        return "bg-yellow-500/20 border-yellow-400/60";
+      case "silver":
+        return "bg-zinc-700/40 border-zinc-600/40";
+      case "bronze":
+        return "bg-amber-900/30 border-amber-700/40";
+      default:
+        return "bg-zinc-900/40 border-zinc-800";
+    }
+  };
+
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
       <h2 className="text-lg font-semibold">Sequence Search</h2>
@@ -148,37 +161,53 @@ export default function SequenceSearch({ uploadId, cards }: Props) {
       ) : null}
 
       {state.matches.length > 0 ? (
-        <div className="mt-4 space-y-3 text-sm text-zinc-200">
-          <p className="text-xs uppercase tracking-wide text-zinc-400">
-            Likely next cards
-          </p>
+        <div className="mt-4 space-y-4 text-sm text-zinc-200">
+          {/* <p className="text-xs uppercase tracking-wide text-zinc-400">
+            5 cards before, 10 cards after
+          </p> */}
           {state.matches.map((match, index) => (
             <div
               key={`${match.match_start_index}-${index}`}
-              className="rounded-md border border-zinc-800 bg-zinc-950/60 px-3 py-2"
+              className="rounded-md border border-zinc-800 bg-zinc-950/60 p-3"
             >
               <div className="text-xs text-zinc-400">
                 Deck {match.deck_label} • {match.direction ?? "forward"} match •
                 start {match.match_start_index}
               </div>
               {match.next_card ? (
-                <div className="mt-1 font-semibold">
-                  {match.next_card.card_name} • {match.next_card.rarity} •{" "}
-                  {match.next_card.deck_label}
+                <div className="mt-1 text-sm font-semibold">
+                  Likely next: {match.next_card.card_name} •{" "}
+                  {match.next_card.rarity}
                 </div>
               ) : (
                 <div className="mt-1 text-zinc-400">
                   End of sequence reached.
                 </div>
               )}
-              {match.next_position_index ? (
-                <a
-                  href={`#deck-${match.deck_label}-${match.next_position_index}`}
-                  className="mt-2 inline-flex text-xs font-semibold text-emerald-300 hover:underline"
-                >
-                  Highlight card #{match.next_position_index}
-                </a>
-              ) : null}
+              <div className="mt-3 grid gap-2">
+                {match.context.map((card) => (
+                  <div
+                    key={`${match.deck_label}-${card.position_index}`}
+                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-xs ${rarityClass(
+                      card.rarity,
+                    )} ${
+                      card.position_index === match.focus_position_index
+                        ? "border-emerald-400 bg-emerald-500/25 text-emerald-100"
+                        : "text-zinc-200"
+                    }`}
+                  >
+                    <span className="text-zinc-400">
+                      #{card.position_index}
+                    </span>
+                    <span className="flex-1 px-2 font-semibold">
+                      {card.card_name}
+                    </span>
+                    <span className="text-zinc-400">
+                      {card.type} • {card.rarity}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>

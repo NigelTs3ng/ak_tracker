@@ -7,8 +7,16 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { findSequenceMatches, SequenceCard } from "@/lib/sequence";
 
+type SearchMatch = ReturnType<typeof findSequenceMatches>[number] & {
+  deck_label?: string;
+  context: SequenceCard[];
+  context_start: number;
+  context_end: number;
+  focus_position_index: number;
+};
+
 type SearchState = {
-  matches: ReturnType<typeof findSequenceMatches>;
+  matches: SearchMatch[];
   message: string | null;
 };
 
@@ -100,10 +108,27 @@ export async function searchSequenceAction(
     );
     const forward = findSequenceMatches(ordered, inputCardIds, "forward");
     const reverse = findSequenceMatches(ordered, inputCardIds, "reverse");
-    return [...forward, ...reverse].map((match) => ({
-      ...match,
-      deck_label: deck,
-    }));
+    const combined = [...forward, ...reverse];
+
+    return combined
+      .map((match) => {
+        const focusIndex = ordered.findIndex(
+          (card) => card.position_index === match.match_start_index,
+        );
+        if (focusIndex === -1) return null;
+        const contextStart = Math.max(0, focusIndex - 5);
+        const contextEnd = Math.min(ordered.length - 1, focusIndex + 10);
+        const context = ordered.slice(contextStart, contextEnd + 1);
+        return {
+          ...match,
+          deck_label: deck,
+          context,
+          context_start: contextStart,
+          context_end: contextEnd,
+          focus_position_index: match.match_start_index,
+        };
+      })
+      .filter((match): match is SearchMatch => Boolean(match));
   });
   if (matches.length === 0) {
     return {
