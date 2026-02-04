@@ -1,5 +1,5 @@
-import Link from "next/link";
 import SequenceSearch from "@/components/SequenceSearch";
+import VersionSelect from "@/components/VersionSelect";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -10,11 +10,12 @@ type SequencePageProps = {
 export default async function SequencePage({ searchParams }: SequencePageProps) {
   const profile = await getProfile();
   const supabase = await createSupabaseServerClient();
+  const versions = ["v1", "v2", "v3", "v4", "v5", "v6"];
   const resolvedParams = searchParams ? await searchParams : undefined;
   const selectedVersion =
-    resolvedParams?.version && ["v1", "v2", "v3"].includes(resolvedParams.version)
+    resolvedParams?.version && versions.includes(resolvedParams.version)
       ? resolvedParams.version
-      : null;
+      : "v3";
 
   if (!profile) {
     return null;
@@ -48,26 +49,28 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
     .select("id,filename,created_at,version")
     .order("created_at", { ascending: false });
 
-  const { data: uploads } = selectedVersion
-    ? await uploadsQuery.eq("version", selectedVersion).limit(1)
-    : await uploadsQuery.limit(1);
+  const { data: uploads } = await uploadsQuery
+    .eq("version", selectedVersion)
+    .limit(1);
 
   const latestUpload = uploads?.[0];
   const { data: allUploads } = await supabase
     .from("sequence_uploads")
     .select("version")
     .order("created_at", { ascending: false });
-  const availableVersions = Array.from(
-    new Set((allUploads ?? []).map((item) => item.version)),
+  const availableVersions = new Set(
+    (allUploads ?? []).map((item) => item.version),
   );
+  const hasUpload = Boolean(latestUpload);
 
-  if (!latestUpload) {
+  if (!hasUpload) {
     return (
       <section className="flex flex-col gap-4">
         <h1 className="text-2xl font-semibold">Sequence Viewer</h1>
         <p className="text-sm text-zinc-400">
-          No sequences are available yet. Ask an admin to upload a deck file.
+          No sequence uploaded for {selectedVersion}. Coming soon....
         </p>
+        <VersionSelect versions={versions} selected={selectedVersion} />
       </section>
     );
   }
@@ -75,6 +78,7 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
   const { data: cards } = await supabase
     .from("cards")
     .select("id,name,version")
+    .eq("version", selectedVersion)
     .order("name", { ascending: true });
 
   type SequenceCard = {
@@ -136,29 +140,19 @@ export default async function SequencePage({ searchParams }: SequencePageProps) 
           Latest upload: {latestUpload.filename} ({latestUpload.version})
         </p>
       </header>
-      {availableVersions.length > 1 ? (
-        <div className="flex flex-wrap gap-2 text-xs">
-          {availableVersions.map((version) => (
-            <Link
-              key={version}
-              href={`/sequence?version=${version}`}
-              className={`rounded-full border px-3 py-1 ${
-                latestUpload.version === version
-                  ? "border-emerald-400 text-emerald-300"
-                  : "border-zinc-700 text-zinc-300"
-              }`}
-            >
-              {version}
-            </Link>
-          ))}
-        </div>
-      ) : null}
+      <VersionSelect versions={versions} selected={selectedVersion} />
 
-      <SequenceSearch
-        key={latestUpload.id}
-        uploadId={latestUpload.id}
-        cards={cards ?? []}
-      />
+      {availableVersions.has(selectedVersion) ? (
+        <SequenceSearch
+          key={latestUpload.id}
+          uploadId={latestUpload.id}
+          cards={cards ?? []}
+        />
+      ) : (
+        <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-950/60 p-6 text-sm text-zinc-300">
+          Coming soon....
+        </div>
+      )}
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
         <h2 className="text-lg font-semibold">Full Sequence</h2>

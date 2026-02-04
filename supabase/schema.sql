@@ -4,7 +4,8 @@ create table if not exists public.cards (
   name text not null,
   type text not null check (type in ('animal', 'strong', 'miracle')),
   rarity text not null check (rarity in ('gold', 'silver', 'bronze', 'normal')),
-  version text not null check (version in ('v1', 'v2', 'v3')),
+  version text not null check (version in ('v1', 'v2', 'v3', 'v4', 'v5', 'v6')),
+  serial text,
   image_url text,
   created_at timestamptz not null default now()
 );
@@ -28,7 +29,7 @@ create table if not exists public.user_cards (
 create table if not exists public.sequence_uploads (
   id uuid primary key default gen_random_uuid(),
   filename text not null,
-  version text not null check (version in ('v1', 'v2', 'v3')),
+  version text not null check (version in ('v1', 'v2', 'v3', 'v4', 'v5', 'v6')),
   uploaded_by uuid references auth.users on delete set null,
   created_at timestamptz not null default now()
 );
@@ -39,7 +40,7 @@ create table if not exists public.card_sequences (
   position_index integer not null,
   card_id uuid not null references public.cards on delete cascade,
   deck_label text not null check (deck_label in ('A', 'B', 'C', 'D')),
-  version text not null check (version in ('v1', 'v2', 'v3')),
+  version text not null check (version in ('v1', 'v2', 'v3', 'v4', 'v5', 'v6')),
   created_at timestamptz not null default now(),
   unique (upload_id, deck_label, position_index)
 );

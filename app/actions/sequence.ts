@@ -126,7 +126,7 @@ export async function uploadSequenceAction(
   }
 
   const selectedVersion = String(formData.get("version") ?? "").trim();
-  if (!["v1", "v2", "v3"].includes(selectedVersion)) {
+  if (!["v1", "v2", "v3", "v4", "v5", "v6"].includes(selectedVersion)) {
     return { message: "Please select a valid version." };
   }
 

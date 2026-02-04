@@ -1,13 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import { uploadSequenceAction } from "@/app/actions/sequence";
+import { uploadCardsAction } from "@/app/actions/cards";
 
 const initialState = { message: null };
 
-export default function UploadSequenceForm() {
+export default function UploadCardsForm() {
   const [state, formAction, isPending] = useActionState(
-    uploadSequenceAction,
+    uploadCardsAction,
     initialState,
   );
 
@@ -30,11 +30,11 @@ export default function UploadSequenceForm() {
         </select>
       </label>
       <label className="text-sm text-zinc-200">
-        Excel file (.xlsx)
+        Card list (.csv or .xlsx)
         <input
           type="file"
           name="file"
-          accept=".xlsx"
+          accept=".csv,.xlsx"
           required
           className="mt-2 w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
         />
@@ -44,7 +44,7 @@ export default function UploadSequenceForm() {
         disabled={isPending}
         className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 disabled:opacity-60"
       >
-        {isPending ? "Uploading..." : "Upload sequence"}
+        {isPending ? "Uploading..." : "Upload card list"}
       </button>
       {state.message ? (
         <p className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
