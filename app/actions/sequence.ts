@@ -8,7 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { findSequenceMatches, SequenceCard } from "@/lib/sequence";
 
 type SearchMatch = ReturnType<typeof findSequenceMatches>[number] & {
-  deck_label?: string;
+  deck_label: string;
   context: SequenceCard[];
   context_start: number;
   context_end: number;
